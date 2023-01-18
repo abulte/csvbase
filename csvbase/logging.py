@@ -3,7 +3,11 @@ from os import environ
 from sys import stderr
 import logging
 
-from systemd.journal import JournalHandler
+try:
+    from systemd.journal import JournalHandler
+    logger_cls = JournalHandler
+except ImportError:
+    logger_cls = logging.StreamHandler
 
 # logging module doesn't provide an easy way to get this
 LOG_LEVELS = [
@@ -26,7 +30,7 @@ def configure_logging(level: str = "INFO"):
         kwargs: Dict[str, Any] = dict(level=level)
         if under_systemd:
             kwargs["format"] = "%(message)s"
-            kwargs["handlers"] = [JournalHandler()]
+            kwargs["handlers"] = [logger_cls()]
         else:
             kwargs["format"] = "%(asctime)s %(levelname)-8s %(name)-35s - %(message)s"
             kwargs["stream"] = stderr
